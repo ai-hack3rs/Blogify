@@ -51,6 +51,19 @@ export interface Comment {
   repliesCount?: number;
 }
 
+export interface Notification {
+  id: string;
+  userId: string;
+  type: 'like' | 'comment' | 'follow';
+  actorId: string;
+  actorName: string;
+  actorPhoto?: string;
+  postId?: string;
+  postTitle?: string;
+  createdAt: Timestamp;
+  read: boolean;
+}
+
 export interface CommentReport {
   id: string;
   commentId: string;

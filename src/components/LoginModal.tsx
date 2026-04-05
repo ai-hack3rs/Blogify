@@ -3,7 +3,8 @@ import {
   signInWithEmailAndPassword, 
   createUserWithEmailAndPassword, 
   signInWithPopup,
-  updateProfile
+  updateProfile,
+  sendSignInLinkToEmail
 } from 'firebase/auth';
 import { auth, googleProvider, db } from '../firebase';
 import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
@@ -22,8 +23,30 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const [displayName, setDisplayName] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
 
   if (!isOpen) return null;
+
+  const handleEmailLinkLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setMessage(null);
+
+    try {
+      const actionCodeSettings = {
+        url: window.location.origin,
+        handleCodeInApp: true,
+      };
+      await sendSignInLinkToEmail(auth, email, actionCodeSettings);
+      window.localStorage.setItem('emailForSignIn', email);
+      setMessage('Check your email for the sign-in link!');
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleGoogleLogin = async () => {
     setLoading(true);
@@ -98,24 +121,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-5">
-            {isSignUp && (
-              <div className="space-y-1.5">
-                <label className="ml-1 text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Name</label>
-                <div className="relative">
-                  <User className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                  <input
-                    type="text"
-                    required
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    className="w-full rounded-2xl border border-white/20 bg-white/50 py-3.5 pl-11 pr-4 text-sm font-medium focus:border-purple-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-0 dark:bg-white/5 dark:text-white transition-all"
-                    placeholder="John Doe"
-                  />
-                </div>
-              </div>
-            )}
-
+          <form onSubmit={handleEmailLinkLogin} className="space-y-5">
             <div className="space-y-1.5">
               <label className="ml-1 text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Email</label>
               <div className="relative">
@@ -131,28 +137,12 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
               </div>
             </div>
 
-            <div className="space-y-1.5">
-              <label className="ml-1 text-xs font-bold uppercase tracking-widest text-gray-400 dark:text-gray-500">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-2xl border border-white/20 bg-white/50 py-3.5 pl-11 pr-4 text-sm font-medium focus:border-purple-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-0 dark:bg-white/5 dark:text-white transition-all"
-                  placeholder="••••••••"
-                />
-              </div>
-            </div>
-
             <button
               type="submit"
               disabled={loading}
               className="flex w-full items-center justify-center gap-2 rounded-2xl bg-black py-4 text-sm font-black text-white transition-all hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90 disabled:opacity-50 shadow-xl hover:scale-[1.02] active:scale-95"
             >
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-              {isSignUp ? 'Create Account' : 'Sign In'}
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Send Magic Link'}
             </button>
           </form>
 

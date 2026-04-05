@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { onAuthStateChanged, User as FirebaseUser, updateProfile } from 'firebase/auth';
+import { onAuthStateChanged, User as FirebaseUser, updateProfile, isSignInWithEmailLink, signInWithEmailLink } from 'firebase/auth';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   collection, query, orderBy, onSnapshot, addDoc, updateDoc, 
@@ -8,7 +8,7 @@ import {
 } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { auth, db, storage } from './firebase';
-import { Post, UserProfile, CommentReport } from './types';
+import { Post, UserProfile, CommentReport, Notification } from './types';
 import { slugify, cn, formatDate, calculateReadingTime } from './lib/utils';
 import { summarizeContent, improveWriting, suggestTags, generateCoverImage, suggestTitles } from './services/gemini';
 import { handleFirestoreError, OperationType } from './lib/firestore-errors';
@@ -25,7 +25,7 @@ import {
   Clock, ChevronRight, Bookmark, PenSquare, Search, Moon, Sun,
   Heart, Share2, MessageCircle, MoreHorizontal, AlertTriangle,
   Users, ShieldAlert, FileText, Home, Twitter, Facebook, Linkedin,
-  Type
+  Type, Bell
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Toaster, toast } from 'sonner';
@@ -133,13 +133,16 @@ export default function App() {
   const [isReadingSettingsOpen, setIsReadingSettingsOpen] = useState(false);
 
   const [exploreActiveCategory, setExploreActiveCategory] = useState('All');
-  const [dashboardActiveTab, setDashboardActiveTab] = useState<'stories' | 'bookmarks' | 'moderation'>('stories');
+  const [dashboardActiveTab, setDashboardActiveTab] = useState<'stories' | 'drafts' | 'bookmarks' | 'moderation'>('stories');
+  const [userDrafts, setUserDrafts] = useState<Post[]>([]);
   const [dashboardReports, setDashboardReports] = useState<CommentReport[]>([]);
   const [adminActiveTab, setAdminActiveTab] = useState<'users' | 'posts' | 'reports'>('users');
   const [adminAllUsers, setAdminAllUsers] = useState<UserProfile[]>([]);
   const [adminAllReports, setAdminAllReports] = useState<CommentReport[]>([]);
   const [adminUserSearchQuery, setAdminUserSearchQuery] = useState('');
   const [adminConfirmDelete, setAdminConfirmDelete] = useState<{ type: 'user' | 'post', id: string, name: string } | null>(null);
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
 
   const handleNavigate = (page: string) => {
     setCurrentPage(page as Page);
@@ -261,6 +264,7 @@ export default function App() {
 
     // Fetch user profile and ensure it exists
     let unsubscribeProfile: (() => void) | undefined;
+    
     const unsubscribeAuth = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {
@@ -317,6 +321,8 @@ export default function App() {
 
     // Fetch following
     let unsubscribeFollowing: (() => void) | undefined;
+    let unsubscribeDrafts: (() => void) | undefined;
+    let unsubscribeNotifications: (() => void) | undefined;
     if (user) {
       const path = 'users/' + user.uid + '/following';
       const q = query(collection(db, path));
@@ -325,8 +331,35 @@ export default function App() {
       }, (error) => {
         handleFirestoreError(error, OperationType.GET, path);
       });
+
+      const draftsPath = 'posts';
+      const draftsQ = query(
+        collection(db, draftsPath),
+        where('authorId', '==', user.uid),
+        where('published', '==', false),
+        orderBy('createdAt', 'desc')
+      );
+      unsubscribeDrafts = onSnapshot(draftsQ, (snapshot) => {
+        setUserDrafts(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Post)));
+      }, (error) => {
+        handleFirestoreError(error, OperationType.GET, draftsPath);
+      });
+
+      const notifPath = 'users/' + user.uid + '/notifications';
+      const notifQ = query(
+        collection(db, notifPath),
+        orderBy('createdAt', 'desc'),
+        limit(20)
+      );
+      unsubscribeNotifications = onSnapshot(notifQ, (snapshot) => {
+        setNotifications(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Notification)));
+      }, (error) => {
+        handleFirestoreError(error, OperationType.GET, notifPath);
+      });
     } else {
       setFollowing([]);
+      setUserDrafts([]);
+      setNotifications([]);
     }
 
     return () => {
@@ -334,6 +367,8 @@ export default function App() {
       if (unsubscribeProfile) unsubscribeProfile();
       if (unsubscribeBookmarks) unsubscribeBookmarks();
       if (unsubscribeFollowing) unsubscribeFollowing();
+      if (unsubscribeDrafts) unsubscribeDrafts();
+      if (unsubscribeNotifications) unsubscribeNotifications();
     };
   }, [user]);
 
@@ -362,6 +397,27 @@ export default function App() {
   }, []);
 
   const followingStr = following.join(',');
+  useEffect(() => {
+    // Handle Email Link Auth
+    if (isSignInWithEmailLink(auth, window.location.href)) {
+      let email = window.localStorage.getItem('emailForSignIn');
+      if (!email) {
+        email = window.prompt('Please provide your email for confirmation');
+      }
+      if (email) {
+        signInWithEmailLink(auth, email, window.location.href)
+          .then((result) => {
+            window.localStorage.removeItem('emailForSignIn');
+            // Handle successful sign-in
+            toast.success('Successfully signed in!');
+          })
+          .catch((error) => {
+            toast.error('Error signing in with email link: ' + error.message);
+          });
+      }
+    }
+  }, []);
+
   useEffect(() => {
     if (!user || following.length === 0) {
       setFollowingPosts([]);
@@ -396,7 +452,7 @@ export default function App() {
         
         const merged = Array.from(allPosts.values())
           .flat()
-          .sort((a, b) => b.createdAt - a.createdAt)
+          .sort((a, b) => b.createdAt.toMillis() - a.createdAt.toMillis())
           .slice(0, 50);
           
         setFollowingPosts(merged);
@@ -1449,7 +1505,18 @@ export default function App() {
                 : "glass text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white"
             )}
           >
-            My Stories
+            Published ({userPosts.length})
+          </button>
+          <button
+            onClick={() => setDashboardActiveTab('drafts')}
+            className={cn(
+              "rounded-full px-8 py-3 text-sm font-black transition-all",
+              dashboardActiveTab === 'drafts' 
+                ? "bg-black text-white dark:bg-white dark:text-black shadow-xl" 
+                : "glass text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white"
+            )}
+          >
+            Drafts ({userDrafts.length})
           </button>
           <button
             onClick={() => setDashboardActiveTab('bookmarks')}
@@ -1558,6 +1625,60 @@ export default function App() {
                 >
                   Write your first story
                 </button>
+              </div>
+            )
+          ) : dashboardActiveTab === 'drafts' ? (
+            userDrafts.length > 0 ? (
+              userDrafts.map(post => (
+                <div key={post.id} className="flex flex-wrap items-center justify-between gap-6 rounded-[2.5rem] glass-card p-8 border border-white/20 shadow-xl group hover:scale-[1.01] transition-all">
+                  <div className="flex-1 space-y-3">
+                    <h3 className="text-2xl font-black tracking-tight text-gray-900 dark:text-white group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">{post.title || 'Untitled Draft'}</h3>
+                    <div className="flex flex-wrap items-center gap-4 text-sm font-bold text-gray-500 dark:text-gray-400">
+                      <span className={cn(
+                        "rounded-full px-4 py-1.5 text-xs font-black tracking-widest uppercase",
+                        "bg-gray-500/10 text-gray-600 dark:text-gray-400 border border-gray-500/20"
+                      )}>
+                        Draft
+                      </span>
+                      <span className="h-1 w-1 rounded-full bg-gray-300 dark:bg-gray-600" />
+                      <span>Last updated: {formatDate(post.updatedAt || post.createdAt)}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button 
+                      onClick={() => {
+                        setSelectedPost(post);
+                        setFormData({
+                          title: post.title,
+                          content: post.content,
+                          tags: post.tags.join(', '),
+                          coverImage: post.coverImage || '',
+                          published: post.published
+                        });
+                        setCurrentPage('edit');
+                      }}
+                      className="rounded-2xl glass p-4 text-gray-500 hover:bg-purple-500/10 hover:text-purple-600 dark:hover:bg-purple-500/20 dark:hover:text-purple-400 transition-all hover:scale-110"
+                      title="Edit Draft"
+                    >
+                      <PenSquare className="h-5 w-5" />
+                    </button>
+                    <button 
+                      onClick={() => handleDeletePost(post.id)}
+                      className="rounded-2xl glass p-4 text-gray-500 hover:bg-red-500/10 hover:text-red-600 dark:hover:bg-red-500/20 dark:hover:text-red-400 transition-all hover:scale-110"
+                      title="Delete Draft"
+                    >
+                      <Trash2 className="h-5 w-5" />
+                    </button>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="rounded-[3rem] glass p-20 text-center border-2 border-dashed border-white/20">
+                <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl glass bg-purple-500/10">
+                  <PenSquare className="h-10 w-10 text-purple-500" />
+                </div>
+                <h3 className="text-2xl font-black tracking-tight text-gray-900 dark:text-white">No drafts</h3>
+                <p className="mt-2 font-medium text-gray-500 dark:text-gray-400">You don't have any saved drafts.</p>
               </div>
             )
           ) : dashboardActiveTab === 'bookmarks' ? (
@@ -2396,6 +2517,9 @@ export default function App() {
         onOpenLogin={() => setIsLoginModalOpen(true)}
         searchQuery={searchQuery}
         onSearchChange={setSearchQuery}
+        notifications={notifications}
+        isNotificationsOpen={isNotificationsOpen}
+        onToggleNotifications={() => setIsNotificationsOpen(!isNotificationsOpen)}
       />
       
       <main className="pb-24 sm:pb-20">

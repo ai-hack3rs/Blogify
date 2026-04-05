@@ -1,9 +1,16 @@
 import React from 'react';
-import { LogIn, LogOut, PenSquare, User, Home, Search, ShieldAlert } from 'lucide-react';
+import { LogIn, LogOut, PenSquare, User, Home, Search, ShieldAlert, Bell } from 'lucide-react';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
 import { cn } from '../lib/utils';
-import { UserProfile } from '../types';
+import { UserProfile, Notification } from '../types';
+
+const formatDate = (date: any) => {
+  if (date && typeof date.toDate === 'function') {
+    return date.toDate().toLocaleDateString();
+  }
+  return 'Just now';
+};
 
 interface NavbarProps {
   user: any;
@@ -13,9 +20,12 @@ interface NavbarProps {
   onOpenLogin: () => void;
   searchQuery: string;
   onSearchChange: (query: string) => void;
+  notifications: Notification[];
+  isNotificationsOpen: boolean;
+  onToggleNotifications: () => void;
 }
 
-export default function Navbar({ user, userProfile, onNavigate, currentPage, onOpenLogin, searchQuery, onSearchChange }: NavbarProps) {
+export default function Navbar({ user, userProfile, onNavigate, currentPage, onOpenLogin, searchQuery, onSearchChange, notifications, isNotificationsOpen, onToggleNotifications }: NavbarProps) {
   const handleLogout = async () => {
     try {
       await signOut(auth);
@@ -84,6 +94,34 @@ export default function Navbar({ user, userProfile, onNavigate, currentPage, onO
                 <PenSquare className="h-4 w-4" />
                 <span>Write</span>
               </button>
+              <div className="relative">
+                <button 
+                  onClick={onToggleNotifications}
+                  className="relative flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-all"
+                >
+                  <Bell className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+                  {notifications.filter(n => !n.read).length > 0 && (
+                    <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-red-500" />
+                  )}
+                </button>
+                {isNotificationsOpen && (
+                  <div className="absolute right-0 mt-2 w-80 origin-top-right rounded-2xl border border-gray-200 bg-white p-2 shadow-2xl dark:bg-gray-900 dark:border-gray-800 z-50">
+                    <div className="px-4 py-2 text-sm font-black text-gray-900 dark:text-white border-b border-gray-100 dark:border-gray-800">Notifications</div>
+                    <div className="max-h-96 overflow-y-auto">
+                      {notifications.length === 0 ? (
+                        <div className="p-4 text-center text-sm text-gray-500">No notifications</div>
+                      ) : (
+                        notifications.map(notif => (
+                          <div key={notif.id} className={cn("p-4 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all", !notif.read && "bg-purple-50 dark:bg-purple-900/10")}>
+                            <p className="text-sm text-gray-900 dark:text-white font-medium">{notif.actorName} {notif.type === 'like' ? 'liked your post' : notif.type === 'comment' ? 'commented on your post' : 'followed you'}</p>
+                            <p className="text-xs text-gray-500">{formatDate(notif.createdAt)}</p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
               <div className="relative group">
                 <button className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 overflow-hidden border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
                   {user.photoURL ? (
