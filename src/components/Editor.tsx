@@ -100,8 +100,8 @@ export default function Editor({ content, onChange, isSaving }: EditorProps) {
   };
 
   return (
-    <div className="rounded-[2rem] glass overflow-hidden border border-white/20 shadow-2xl">
-      <div className="flex flex-wrap items-center gap-1.5 border-b border-white/10 bg-white/20 dark:bg-white/5 p-3 backdrop-blur-md">
+    <div className="rounded-[2rem] glass-card overflow-hidden">
+      <div className="flex flex-wrap items-center gap-1.5 border-b border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 p-3 backdrop-blur-md">
         <div className="flex items-center gap-1.5 mr-2">
           <button
             type="button"

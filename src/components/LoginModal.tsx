@@ -74,7 +74,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/40 p-4 backdrop-blur-md">
-      <div className="relative w-full max-w-md overflow-hidden rounded-[2rem] glass shadow-2xl animate-in fade-in zoom-in duration-300">
+      <div className="relative w-full max-w-md overflow-hidden rounded-[2rem] glass-card animate-in fade-in zoom-in duration-300">
         <button 
           onClick={onClose}
           className="absolute right-6 top-6 rounded-full glass p-2 text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white transition-all"

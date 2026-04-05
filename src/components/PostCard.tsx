@@ -46,7 +46,7 @@ export default function PostCard({ post, onClick, isBookmarked, onBookmark, onAu
             </div>
             <div className="flex flex-col">
               <span className="text-sm font-bold text-gray-900 dark:text-white">{post.authorName}</span>
-              <span className="text-xs text-gray-500 dark:text-gray-400">{formatDate(post.createdAt)}</span>
+              <span className="text-xs font-mono text-gray-500 dark:text-gray-400">{formatDate(post.createdAt)}</span>
             </div>
           </div>
 
@@ -63,7 +63,7 @@ export default function PostCard({ post, onClick, isBookmarked, onBookmark, onAu
               {post.tags?.slice(0, 3).map((tag) => (
                 <span 
                   key={tag} 
-                  className="rounded-full glass px-3 py-1 text-xs font-bold text-gray-600 dark:text-gray-300"
+                  className="rounded-full glass px-3 py-1 text-[10px] font-mono font-bold uppercase tracking-wider text-gray-600 dark:text-gray-300"
                 >
                   #{tag}
                 </span>

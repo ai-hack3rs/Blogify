@@ -18,7 +18,6 @@ import Editor from './components/Editor';
 import LoginModal from './components/LoginModal';
 import CommentSection from './components/CommentSection';
 import AdSense from './components/AdSense';
-import Footer from './components/Footer';
 import { PostCardSkeleton } from './components/Skeleton';
 import { 
   Plus, ArrowLeft, Trash2, Save, Eye, EyeOff, Sparkles, Wand2,
@@ -721,10 +720,10 @@ export default function App() {
                   )}
                 </>
               ) : (
-                <div className="glass rounded-[3rem] py-24 text-center border border-white/20 shadow-2xl relative overflow-hidden">
+                <div className="glass-card rounded-[3rem] py-24 text-center relative overflow-hidden">
                   <div className="absolute -right-20 -top-20 h-64 w-64 rounded-full bg-purple-500/10 blur-3xl" />
                   <div className="relative z-10">
-                    <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl glass bg-purple-500/10">
+                    <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-3xl glass bg-purple-500/5">
                       <Search className="h-10 w-10 text-purple-500" />
                     </div>
                     <h3 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white">
@@ -767,7 +766,7 @@ export default function App() {
                     <button 
                       key={tag}
                       onClick={() => setSearchQuery(tag)}
-                      className="rounded-full glass px-4 py-2 text-sm font-bold text-gray-600 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 transition-all border border-white/10"
+                      className="rounded-full glass px-4 py-2 text-xs font-mono font-bold uppercase tracking-wider text-gray-600 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 transition-all"
                     >
                       #{tag}
                     </button>
@@ -775,7 +774,7 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="rounded-3xl glass p-8 border border-white/20 shadow-xl">
+              <div className="rounded-3xl glass-card p-8">
                 <h3 className="text-lg font-black tracking-tight text-gray-900 dark:text-white">Write on Blogify</h3>
                 <p className="mt-2 text-sm font-medium text-gray-500 dark:text-gray-400">Share your thinking with the world.</p>
                 <button 
@@ -2333,8 +2332,6 @@ export default function App() {
           </motion.div>
         </AnimatePresence>
       </main>
-
-      <Footer />
 
       {/* Mobile Floating Action Button */}
       {user && currentPage !== 'write' && currentPage !== 'edit' && (

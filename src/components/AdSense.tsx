@@ -49,7 +49,7 @@ const AdSense: React.FC<AdSenseProps> = ({
   const clientId = import.meta.env.VITE_ADSENSE_CLIENT_ID || "7656082251156550";
 
   return (
-    <div className={`adsense-container my-8 overflow-hidden rounded-2xl glass border border-white/10 ${className}`}>
+    <div className={`adsense-container my-8 overflow-hidden rounded-2xl glass-card ${className}`}>
       <ins
         ref={adRef}
         className="adsbygoogle"
