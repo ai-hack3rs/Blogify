@@ -18,6 +18,7 @@ import Editor from './components/Editor';
 import LoginModal from './components/LoginModal';
 import CommentSection from './components/CommentSection';
 import AdSense from './components/AdSense';
+import Footer from './components/Footer';
 import { PostCardSkeleton } from './components/Skeleton';
 import { 
   Plus, ArrowLeft, Trash2, Save, Eye, EyeOff, Sparkles, Wand2,
@@ -2332,6 +2333,8 @@ export default function App() {
           </motion.div>
         </AnimatePresence>
       </main>
+
+      <Footer />
 
       {/* Mobile Floating Action Button */}
       {user && currentPage !== 'write' && currentPage !== 'edit' && (

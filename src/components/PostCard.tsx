@@ -83,11 +83,12 @@ export default function PostCard({ post, onClick, isBookmarked, onBookmark, onAu
         </div>
 
         {post.coverImage && (
-          <div className="h-56 w-full shrink-0 overflow-hidden rounded-2xl glass md:h-48 md:w-72">
+          <div className="relative h-56 w-full shrink-0 overflow-hidden rounded-2xl glass md:h-48 md:w-72">
+            <div className="absolute inset-0 z-10 bg-black/0 transition-colors duration-500 group-hover:bg-black/20" />
             <img 
               src={post.coverImage} 
               alt={post.title} 
-              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
+              className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
               referrerPolicy="no-referrer"
             />
           </div>

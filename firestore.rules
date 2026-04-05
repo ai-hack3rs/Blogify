@@ -117,7 +117,8 @@ service cloud.firestore {
       allow read: if true;
       allow create: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == 'user';
       allow update: if (isOwner(userId) || isAdmin()) && isValidUser(request.resource.data) && 
-                      (isAdmin() || request.resource.data.role == resource.data.role);
+                      (isAdmin() || request.resource.data.role == resource.data.role) ||
+                      (isAuthenticated() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['followersCount', 'followingCount']));
       allow delete: if isAdmin();
 
       match /bookmarks/{postId} {
