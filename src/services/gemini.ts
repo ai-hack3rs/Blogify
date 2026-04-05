@@ -5,7 +5,7 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || '' });
 export const summarizeContent = async (content: string) => {
   const response = await ai.models.generateContent({
     model: "gemini-3-flash-preview",
-    contents: `Summarize the following blog post content in a concise TL;DR paragraph:\n\n${content}`,
+    contents: `Summarize the following blog post content in a concise paragraph:\n\n${content}`,
   });
   return response.text;
 };

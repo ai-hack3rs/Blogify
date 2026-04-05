@@ -81,7 +81,7 @@ export default function Editor({ content, onChange, isSaving }: EditorProps) {
       if (action === 'summarize') {
         const summary = await summarizeContent(text);
         if (summary) {
-          editor.chain().focus().insertContent(`\n\n> **AI Summary:** ${summary}\n\n`).run();
+          editor.chain().focus().insertContentAt(0, `<p><strong>Summary:</strong> ${summary}</p><br>`).run();
           toast.success('Summary generated!');
         }
       } else if (action === 'improve') {
@@ -185,6 +185,14 @@ export default function Editor({ content, onChange, isSaving }: EditorProps) {
               <ImageIcon className="h-4 w-4" />
             </MenuButton>
 
+            <MenuButton 
+              onClick={() => handleAiAction('summarize')}
+              title="Generate Summary"
+              isActive={false}
+            >
+              <FileText className="h-4 w-4" />
+            </MenuButton>
+
             <div className="mx-1 h-6 w-px bg-gray-200/20" />
 
             <div className="relative">
@@ -211,13 +219,6 @@ export default function Editor({ content, onChange, isSaving }: EditorProps) {
                   >
                     <Wand2 className="h-4 w-4" />
                     Improve Writing
-                  </button>
-                  <button
-                    onClick={() => handleAiAction('summarize')}
-                    className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-left text-sm font-bold text-gray-700 hover:bg-purple-500/10 hover:text-purple-600 dark:text-gray-300 dark:hover:bg-purple-500/20 dark:hover:text-purple-400 transition-all"
-                  >
-                    <FileText className="h-4 w-4" />
-                    Summarize Post
                   </button>
                 </div>
               )}

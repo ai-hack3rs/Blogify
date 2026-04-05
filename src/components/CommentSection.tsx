@@ -166,70 +166,79 @@ export default function CommentSection({ postId, user }: CommentSectionProps) {
 
   const commentTree = buildCommentTree(comments.filter(c => !c.isRemoved));
 
-  const CommentItem = ({ comment, depth = 0 }: { comment: any, depth?: number }) => (
-    <div className={`space-y-6 ${depth > 0 ? 'ml-8 border-l border-white/10 pl-8' : ''}`}>
-      <div className="group flex gap-5">
-        <div className="h-10 w-10 shrink-0 overflow-hidden rounded-2xl glass">
-          {comment.authorPhoto ? (
-            <img src={comment.authorPhoto} alt={comment.authorName} className="h-full w-full object-cover" referrerPolicy="no-referrer" />
-          ) : (
-            <User className="h-full w-full p-2 text-gray-400" />
-          )}
-        </div>
-        <div className="flex-1 space-y-2">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span className="text-sm font-black text-gray-900 dark:text-white">{comment.authorName}</span>
-              <span className="text-[10px] font-medium text-gray-400">{formatDate(comment.createdAt)}</span>
-              {comment.isReported && (
-                <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-amber-500">
-                  <AlertTriangle className="h-3 w-3" />
-                  Under Review
-                </span>
-              )}
-            </div>
-            <div className="flex items-center gap-2 opacity-0 transition-all group-hover:opacity-100">
-              {user && (
-                <button 
-                  onClick={() => setReplyingTo(comment)}
-                  className="text-gray-400 hover:text-purple-500 hover:scale-110 transition-all"
-                  title="Reply"
-                >
-                  <Reply className="h-4 w-4" />
-                </button>
-              )}
-              {user && user.uid !== comment.authorId && (
-                <button 
-                  onClick={() => handleReport(comment)}
-                  className="text-gray-400 hover:text-amber-500 hover:scale-110 transition-all"
-                  title="Report comment"
-                >
-                  <Flag className="h-4 w-4" />
-                </button>
-              )}
-              {(user?.uid === comment.authorId || user?.role === 'admin') && (
-                <button 
-                  onClick={() => handleDelete(comment.id, comment.parentId)}
-                  className="text-gray-400 hover:text-red-500 hover:scale-110 transition-all"
-                  title="Delete comment"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
-              )}
-            </div>
+  const CommentItem = ({ comment, depth = 0 }: { comment: any, depth?: number }) => {
+    // Limit depth to prevent excessive indentation
+    const maxDepth = 5;
+    const currentDepth = Math.min(depth, maxDepth);
+    
+    return (
+      <div 
+        className={`space-y-6 ${currentDepth > 0 ? 'border-l-2 border-purple-200 dark:border-purple-900/50' : ''}`}
+        style={{ marginLeft: currentDepth > 0 ? `${currentDepth * 16}px` : '0px' }}
+      >
+        <div className={`group flex gap-5 ${currentDepth > 0 ? 'bg-gray-50 dark:bg-gray-800/30 p-4 rounded-2xl' : ''}`}>
+          <div className="h-10 w-10 shrink-0 overflow-hidden rounded-2xl glass">
+            {comment.authorPhoto ? (
+              <img src={comment.authorPhoto} alt={comment.authorName} className="h-full w-full object-cover" referrerPolicy="no-referrer" />
+            ) : (
+              <User className="h-full w-full p-2 text-gray-400" />
+            )}
           </div>
-          <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-400 font-medium">{comment.content}</p>
+          <div className="flex-1 space-y-2">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-black text-gray-900 dark:text-white">{comment.authorName}</span>
+                <span className="text-[10px] font-medium text-gray-400">{formatDate(comment.createdAt)}</span>
+                {comment.isReported && (
+                  <span className="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-amber-500">
+                    <AlertTriangle className="h-3 w-3" />
+                    Under Review
+                  </span>
+                )}
+              </div>
+              <div className="flex items-center gap-2 opacity-0 transition-all group-hover:opacity-100">
+                {user && (
+                  <button 
+                    onClick={() => setReplyingTo(comment)}
+                    className="text-gray-400 hover:text-purple-500 hover:scale-110 transition-all"
+                    title="Reply"
+                  >
+                    <Reply className="h-4 w-4" />
+                  </button>
+                )}
+                {user && user.uid !== comment.authorId && (
+                  <button 
+                    onClick={() => handleReport(comment)}
+                    className="text-gray-400 hover:text-amber-500 hover:scale-110 transition-all"
+                    title="Report comment"
+                  >
+                    <Flag className="h-4 w-4" />
+                  </button>
+                )}
+                {(user?.uid === comment.authorId || user?.role === 'admin') && (
+                  <button 
+                    onClick={() => handleDelete(comment.id, comment.parentId)}
+                    className="text-gray-400 hover:text-red-500 hover:scale-110 transition-all"
+                    title="Delete comment"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+            </div>
+            <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-400 font-medium">{comment.content}</p>
+          </div>
         </div>
+        {comment.replies.length > 0 && (
+          <div className="space-y-6">
+            {comment.replies.map((reply: any) => (
+              <CommentItem key={reply.id} comment={reply} depth={depth + 1} />
+            ))}
+          </div>
+        )}
       </div>
-      {comment.replies.length > 0 && (
-        <div className="space-y-6">
-          {comment.replies.map((reply: any) => (
-            <CommentItem key={reply.id} comment={reply} depth={depth + 1} />
-          ))}
-        </div>
-      )}
-    </div>
-  );
+    );
+  };
 
   return (
     <div className="mt-16 space-y-10 border-t border-white/10 pt-16">

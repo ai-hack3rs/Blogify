@@ -18,6 +18,7 @@ import Editor from './components/Editor';
 import LoginModal from './components/LoginModal';
 import CommentSection from './components/CommentSection';
 import AdSense from './components/AdSense';
+import NewsletterForm from './components/NewsletterForm';
 import { PostCardSkeleton } from './components/Skeleton';
 import { 
   Plus, ArrowLeft, Trash2, Save, Eye, EyeOff, Sparkles, Wand2,
@@ -143,6 +144,8 @@ export default function App() {
   const [adminConfirmDelete, setAdminConfirmDelete] = useState<{ type: 'user' | 'post', id: string, name: string } | null>(null);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
+  const [postSummary, setPostSummary] = useState<string | null>(null);
+  const [isSummarizing, setIsSummarizing] = useState(false);
 
   const handleNavigate = (page: string) => {
     setCurrentPage(page as Page);
@@ -1017,7 +1020,7 @@ export default function App() {
     };
 
     return (
-      <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8 relative">
+      <div className={cn("mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8 relative min-h-screen", darkMode ? "dark bg-slate-950" : "bg-slate-50")}>
         {/* Floating Reading Settings */}
         <div className="fixed bottom-8 right-8 z-50">
           <div className="relative">
@@ -1150,6 +1153,24 @@ export default function App() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
+                <button
+                  onClick={async () => {
+                    setIsSummarizing(true);
+                    try {
+                      const summary = await summarizeContent(selectedPost.content);
+                      if (summary) setPostSummary(summary);
+                    } catch (e) {
+                      toast.error('Failed to summarize');
+                    } finally {
+                      setIsSummarizing(false);
+                    }
+                  }}
+                  disabled={isSummarizing}
+                  className="flex items-center gap-2 rounded-2xl glass p-3 transition-all hover:scale-110 active:scale-95 shadow-lg text-purple-600 dark:text-purple-400 bg-purple-500/10"
+                  title="Summarize Post"
+                >
+                  {isSummarizing ? <Loader2 className="h-5 w-5 animate-spin" /> : <Sparkles className="h-5 w-5" />}
+                </button>
                 <button 
                   onClick={(e) => handleBookmark(e, selectedPost.id)}
                   className={cn(
@@ -1233,6 +1254,13 @@ export default function App() {
               </div>
             )}
           </header>
+
+          {postSummary && (
+            <div className="mb-10 rounded-3xl bg-purple-500/5 p-8 border border-purple-500/20">
+              <h4 className="text-sm font-black uppercase tracking-widest text-purple-600 dark:text-purple-400 mb-4">AI Summary</h4>
+              <p className="text-lg font-medium text-gray-700 dark:text-gray-300 leading-relaxed">{postSummary}</p>
+            </div>
+          )}
 
           <div 
             className={cn(
@@ -2543,6 +2571,9 @@ export default function App() {
             {currentPage === '404' && renderNotFound()}
           </motion.div>
         </AnimatePresence>
+        <div className="mt-12 px-4 sm:px-6 lg:px-8 max-w-2xl mx-auto">
+          <NewsletterForm />
+        </div>
       </main>
 
       {/* Mobile Floating Action Button */}
