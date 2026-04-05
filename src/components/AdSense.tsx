@@ -46,7 +46,7 @@ const AdSense: React.FC<AdSenseProps> = ({
     return () => clearTimeout(timer);
   }, [adSlot]);
 
-  const clientId = import.meta.env.VITE_ADSENSE_CLIENT_ID || "YOUR_CLIENT_ID";
+  const clientId = import.meta.env.VITE_ADSENSE_CLIENT_ID || "7656082251156550";
 
   return (
     <div className={`adsense-container my-8 overflow-hidden rounded-2xl glass border border-white/10 ${className}`}>
