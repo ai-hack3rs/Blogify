@@ -1062,7 +1062,7 @@ export default function App() {
                   </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                 <button
                   onClick={async () => {
                     setIsSummarizing(true);
@@ -1076,7 +1076,7 @@ export default function App() {
                     }
                   }}
                   disabled={isSummarizing}
-                  className="flex items-center gap-2 rounded-2xl glass p-3 transition-all hover:scale-110 active:scale-95 shadow-lg text-purple-600 dark:text-purple-400 bg-purple-500/10"
+                  className="flex items-center gap-2 rounded-2xl glass p-2.5 sm:p-3 transition-all hover:scale-110 active:scale-95 shadow-lg text-purple-600 dark:text-purple-400 bg-purple-500/10"
                   title="Summarize Post"
                 >
                   {isSummarizing ? <Loader2 className="h-5 w-5 animate-spin" /> : <Sparkles className="h-5 w-5" />}
@@ -1084,7 +1084,7 @@ export default function App() {
                 <button 
                   onClick={(e) => handleBookmark(e, selectedPost.id)}
                   className={cn(
-                    "rounded-2xl glass p-3 transition-all hover:scale-110 active:scale-95 shadow-lg",
+                    "rounded-2xl glass p-2.5 sm:p-3 transition-all hover:scale-110 active:scale-95 shadow-lg",
                     bookmarks.includes(selectedPost.id) ? "text-purple-600 dark:text-purple-400 bg-purple-500/10" : "text-gray-500"
                   )}
                   title="Bookmark story"
@@ -1093,62 +1093,62 @@ export default function App() {
                 </button>
                 <button 
                   onClick={handleLike}
-                  className="flex items-center gap-2 rounded-2xl glass px-6 py-3 text-sm font-black text-gray-700 transition-all hover:bg-red-500/10 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400 hover:scale-105 active:scale-95 shadow-lg"
+                  className="flex items-center gap-2 rounded-2xl glass px-4 sm:px-6 py-2.5 sm:py-3 text-sm font-black text-gray-700 transition-all hover:bg-red-500/10 hover:text-red-600 dark:text-gray-300 dark:hover:text-red-400 hover:scale-105 active:scale-95 shadow-lg"
                   title="Like story"
                 >
                   <Heart className={cn("h-5 w-5 transition-colors", selectedPost.likesCount ? "fill-red-500 text-red-500" : "")} />
                   {selectedPost.likesCount || 0}
                 </button>
                 <div 
-                  className="flex items-center gap-2 rounded-2xl glass px-6 py-3 text-sm font-black text-gray-700 dark:text-gray-300 shadow-lg"
+                  className="flex items-center gap-2 rounded-2xl glass px-4 sm:px-6 py-2.5 sm:py-3 text-sm font-black text-gray-700 dark:text-gray-300 shadow-lg"
                   title="Comments"
                 >
                   <MessageCircle className="h-5 w-5 text-blue-500" />
                   {selectedPost.commentsCount || 0}
                 </div>
                 
-                <div className="flex items-center gap-2 rounded-[1.5rem] glass p-1.5 shadow-lg">
+                <div className="flex items-center gap-1 sm:gap-2 rounded-[1.5rem] glass p-1 sm:p-1.5 shadow-lg">
                   <button 
                     onClick={() => {
                       const url = window.location.href;
                       const text = `Check out this story: ${selectedPost.title}`;
                       window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
                     }}
-                    className="rounded-xl p-2 text-gray-500 hover:bg-blue-500/10 hover:text-blue-400 transition-all hover:scale-110"
+                    className="rounded-xl p-1.5 sm:p-2 text-gray-500 hover:bg-blue-500/10 hover:text-blue-400 transition-all hover:scale-110"
                     title="Share on Twitter"
                   >
-                    <Twitter className="h-5 w-5" />
+                    <Twitter className="h-4 w-4 sm:h-5 sm:w-5" />
                   </button>
                   <button 
                     onClick={() => {
                       const url = window.location.href;
                       window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
                     }}
-                    className="rounded-xl p-2 text-gray-500 hover:bg-blue-600/10 hover:text-blue-600 transition-all hover:scale-110"
+                    className="rounded-xl p-1.5 sm:p-2 text-gray-500 hover:bg-blue-600/10 hover:text-blue-600 transition-all hover:scale-110"
                     title="Share on Facebook"
                   >
-                    <Facebook className="h-5 w-5" />
+                    <Facebook className="h-4 w-4 sm:h-5 sm:w-5" />
                   </button>
                   <button 
                     onClick={() => {
                       const url = window.location.href;
                       window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(url)}`, '_blank');
                     }}
-                    className="rounded-xl p-2 text-gray-500 hover:bg-blue-700/10 hover:text-blue-700 transition-all hover:scale-110"
+                    className="rounded-xl p-1.5 sm:p-2 text-gray-500 hover:bg-blue-700/10 hover:text-blue-700 transition-all hover:scale-110"
                     title="Share on LinkedIn"
                   >
-                    <Linkedin className="h-5 w-5" />
+                    <Linkedin className="h-4 w-4 sm:h-5 sm:w-5" />
                   </button>
-                  <div className="h-4 w-[1px] bg-white/10 mx-1" />
+                  <div className="h-4 w-[1px] bg-white/10 mx-0.5 sm:mx-1" />
                   <button 
                     onClick={() => {
                       navigator.clipboard.writeText(window.location.href);
                       toast.success('Link copied to clipboard!');
                     }}
-                    className="rounded-xl p-2 text-gray-500 hover:bg-purple-500/10 hover:text-purple-600 transition-all hover:scale-110"
+                    className="rounded-xl p-1.5 sm:p-2 text-gray-500 hover:bg-purple-500/10 hover:text-purple-600 transition-all hover:scale-110"
                     title="Copy link"
                   >
-                    <Share2 className="h-5 w-5" />
+                    <Share2 className="h-4 w-4 sm:h-5 sm:w-5" />
                   </button>
                 </div>
               </div>
