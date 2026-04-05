@@ -269,7 +269,7 @@ export default function CommentSection({ postId, user }: CommentSectionProps) {
               value={newComment}
               onChange={(e) => setNewComment(e.target.value)}
               placeholder={replyingTo ? "Write a reply..." : "Add to the discussion..."}
-              className="w-full rounded-3xl border border-white/20 bg-white/50 p-5 text-base font-medium focus:border-purple-500 focus:bg-white focus:outline-none focus:ring-0 dark:bg-white/5 dark:text-white transition-all"
+              className="w-full rounded-3xl border border-white/20 bg-white/50 p-5 text-base font-medium focus:border-purple-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-0 dark:bg-white/5 dark:text-white transition-all"
               rows={3}
             />
             <div className="flex justify-end">

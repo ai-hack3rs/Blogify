@@ -69,7 +69,7 @@ export default function Navbar({ user, userProfile, onNavigate, currentPage, onO
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder="Search stories, authors, tags..."
-              className="w-full rounded-2xl border border-gray-200 bg-gray-50/50 py-2 pl-11 pr-4 text-sm font-medium focus:border-purple-500 focus:bg-white focus:outline-none focus:ring-0 dark:border-gray-800 dark:bg-gray-900/50 dark:text-white dark:focus:border-purple-500 transition-all"
+              className="w-full rounded-2xl border border-gray-200 bg-gray-50/50 py-2 pl-11 pr-4 text-sm font-medium focus:border-purple-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-0 dark:border-gray-800 dark:bg-gray-900/50 dark:text-white dark:focus:border-purple-500 transition-all"
             />
           </div>
         </div>

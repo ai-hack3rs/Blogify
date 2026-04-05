@@ -80,7 +80,7 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
   }
 }
 
-type Page = 'home' | 'explore' | 'write' | 'dashboard' | 'post' | 'edit' | 'profile' | 'public-profile' | 'admin-dashboard';
+type Page = 'home' | 'explore' | 'write' | 'dashboard' | 'post' | 'edit' | 'profile' | 'public-profile' | 'admin-dashboard' | '404';
 
 const ReadingProgressBar = () => {
   const [scrollProgress, setScrollProgress] = useState(0);
@@ -902,7 +902,7 @@ export default function App() {
   };
 
   const renderPost = () => {
-    if (!selectedPost) return null;
+    if (!selectedPost) return renderNotFound();
     const readingTime = selectedPost.readingTime || calculateReadingTime(selectedPost.content);
 
     const fontSizeClasses = {
@@ -1002,9 +1002,11 @@ export default function App() {
           
           <header className="relative mb-16 space-y-10">
             <div className="flex flex-wrap items-center justify-between gap-6">
-              <button 
+              <div 
                 onClick={() => viewProfile(selectedPost.authorId)}
-                className="flex items-center gap-4 group"
+                className="flex items-center gap-4 group cursor-pointer"
+                role="button"
+                tabIndex={0}
               >
                 <div className="h-14 w-14 overflow-hidden rounded-2xl glass p-0.5 group-hover:scale-105 transition-transform">
                   {selectedPost.authorPhoto ? (
@@ -1042,7 +1044,7 @@ export default function App() {
                     <span>{formatDate(selectedPost.createdAt)}</span>
                   </div>
                 </div>
-              </button>
+              </div>
               <div className="flex items-center gap-3">
                 <button 
                   onClick={(e) => handleBookmark(e, selectedPost.id)}
@@ -1926,10 +1928,10 @@ export default function App() {
               transition={{ delay: i * 0.05 }}
               onClick={() => setExploreActiveCategory(cat)}
               className={cn(
-                "rounded-full px-6 py-2.5 text-sm font-black transition-all",
+                "rounded-full px-6 py-2.5 text-sm font-bold transition-all border",
                 exploreActiveCategory === cat 
-                  ? "bg-black text-white shadow-xl dark:bg-white dark:text-black" 
-                  : "glass text-gray-500 hover:text-black dark:text-gray-400 dark:hover:text-white"
+                  ? "bg-slate-900 text-white border-slate-900 shadow-md dark:bg-white dark:text-slate-900 dark:border-white" 
+                  : "bg-white text-slate-600 border-slate-200 hover:border-slate-300 hover:bg-slate-50 dark:bg-slate-900 dark:text-slate-400 dark:border-slate-800 dark:hover:border-slate-700 dark:hover:bg-slate-800"
               )}
             >
               {cat}
@@ -1942,48 +1944,51 @@ export default function App() {
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="md:col-span-2 md:row-span-2"
+              className="md:col-span-3 lg:col-span-4"
             >
               <PostCard 
-              post={featuredPost} 
-              onClick={() => {
-                setSelectedPost(featuredPost);
-                handleViewCount(featuredPost.id);
-                setCurrentPage('post');
-              }}
-              isBookmarked={bookmarks.includes(featuredPost.id)}
-              onBookmark={(e) => handleBookmark(e, featuredPost.id)}
-              onAuthorClick={(e) => {
-                e.stopPropagation();
-                viewProfile(featuredPost.authorId);
-              }}
-            />
-          </motion.div>
-        )}
+                post={featuredPost} 
+                layout="featured"
+                onClick={() => {
+                  setSelectedPost(featuredPost);
+                  handleViewCount(featuredPost.id);
+                  setCurrentPage('post');
+                }}
+                isBookmarked={bookmarks.includes(featuredPost.id)}
+                onBookmark={(e) => handleBookmark(e, featuredPost.id)}
+                onAuthorClick={(e) => {
+                  e.stopPropagation();
+                  viewProfile(featuredPost.authorId);
+                }}
+              />
+            </motion.div>
+          )}
         
-        {otherPosts.map((post, i) => (
-          <motion.div
-            key={post.id}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: (i + 1) * 0.1 }}
-          >
-            <PostCard 
-              post={post} 
-              onClick={() => {
-                setSelectedPost(post);
-                handleViewCount(post.id);
-                setCurrentPage('post');
-              }}
-              isBookmarked={bookmarks.includes(post.id)}
-              onBookmark={(e) => handleBookmark(e, post.id)}
-              onAuthorClick={(e) => {
-                e.stopPropagation();
-                viewProfile(post.authorId);
-              }}
-            />
-          </motion.div>
-        ))}
+          {otherPosts.map((post, i) => (
+            <motion.div
+              key={post.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: (i + 1) * 0.1 }}
+              className="md:col-span-1"
+            >
+              <PostCard 
+                post={post} 
+                layout="vertical"
+                onClick={() => {
+                  setSelectedPost(post);
+                  handleViewCount(post.id);
+                  setCurrentPage('post');
+                }}
+                isBookmarked={bookmarks.includes(post.id)}
+                onBookmark={(e) => handleBookmark(e, post.id)}
+                onAuthorClick={(e) => {
+                  e.stopPropagation();
+                  viewProfile(post.authorId);
+                }}
+              />
+            </motion.div>
+          ))}
         </div>
       </div>
     );
@@ -2059,7 +2064,7 @@ export default function App() {
                   type="text"
                   value={profileFormData.photoURL}
                   onChange={e => setProfileFormData({ ...profileFormData, photoURL: e.target.value })}
-                  className="flex-1 rounded-2xl border border-white/20 bg-white/50 p-4 text-base font-bold focus:border-purple-500 focus:bg-white focus:outline-none focus:ring-0 dark:bg-white/5 dark:text-white transition-all"
+                  className="flex-1 rounded-2xl border border-white/20 bg-white/50 p-4 text-base font-bold focus:border-purple-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-0 dark:bg-white/5 dark:text-white transition-all"
                   placeholder="https://example.com/avatar.jpg"
                 />
                 <label className="cursor-pointer rounded-2xl glass px-6 flex items-center justify-center text-purple-600 hover:bg-purple-500/10 transition-all shadow-lg">
@@ -2091,7 +2096,7 @@ export default function App() {
               <textarea
                 value={profileFormData.bio}
                 onChange={e => setProfileFormData({ ...profileFormData, bio: e.target.value })}
-                className="w-full rounded-2xl border border-white/20 bg-white/50 p-4 text-base font-bold focus:border-purple-500 focus:bg-white focus:outline-none focus:ring-0 dark:bg-white/5 dark:text-white transition-all min-h-[120px] resize-none"
+                className="w-full rounded-2xl border border-white/20 bg-white/50 p-4 text-base font-bold focus:border-purple-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-0 dark:bg-white/5 dark:text-white transition-all min-h-[120px] resize-none"
                 placeholder="Tell the world about yourself..."
               />
             </div>
@@ -2153,7 +2158,7 @@ export default function App() {
   };
 
   const renderPublicProfile = () => {
-    if (!selectedProfile) return null;
+    if (!selectedProfile) return renderNotFound();
     const profilePosts = posts.filter(p => p.authorId === selectedProfile.uid);
     const isFollowing = following.includes(selectedProfile.uid);
 
@@ -2275,6 +2280,33 @@ export default function App() {
     );
   };
 
+  const renderNotFound = () => (
+    <div className="mx-auto max-w-2xl px-4 py-24 sm:px-6 lg:px-8 text-center flex flex-col items-center justify-center min-h-[60vh]">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="glass-card p-12 rounded-[3rem] w-full"
+      >
+        <div className="text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600 mb-6">
+          404
+        </div>
+        <h1 className="text-3xl font-black tracking-tight text-gray-900 dark:text-white mb-4">
+          Page Not Found
+        </h1>
+        <p className="text-lg text-gray-500 dark:text-gray-400 mb-10 font-medium">
+          The page you're looking for doesn't exist or has been moved.
+        </p>
+        <button
+          onClick={() => setCurrentPage('home')}
+          className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-8 py-4 text-sm font-bold text-white transition-all hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-gray-100 shadow-xl hover:scale-105 active:scale-95"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Homepage
+        </button>
+      </motion.div>
+    </div>
+  );
+
   if (loading) {
     return (
       <div className="flex h-screen items-center justify-center bg-white dark:bg-black relative overflow-hidden">
@@ -2329,6 +2361,7 @@ export default function App() {
             {currentPage === 'admin-dashboard' && renderAdminDashboard()}
             {currentPage === 'profile' && renderProfile()}
             {currentPage === 'public-profile' && renderPublicProfile()}
+            {currentPage === '404' && renderNotFound()}
           </motion.div>
         </AnimatePresence>
       </main>

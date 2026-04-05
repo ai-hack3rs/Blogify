@@ -109,7 +109,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                     required
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
-                    className="w-full rounded-2xl border border-white/20 bg-white/50 py-3.5 pl-11 pr-4 text-sm font-medium focus:border-purple-500 focus:bg-white focus:outline-none focus:ring-0 dark:bg-white/5 dark:text-white transition-all"
+                    className="w-full rounded-2xl border border-white/20 bg-white/50 py-3.5 pl-11 pr-4 text-sm font-medium focus:border-purple-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-0 dark:bg-white/5 dark:text-white transition-all"
                     placeholder="John Doe"
                   />
                 </div>
@@ -125,7 +125,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full rounded-2xl border border-white/20 bg-white/50 py-3.5 pl-11 pr-4 text-sm font-medium focus:border-purple-500 focus:bg-white focus:outline-none focus:ring-0 dark:bg-white/5 dark:text-white transition-all"
+                  className="w-full rounded-2xl border border-white/20 bg-white/50 py-3.5 pl-11 pr-4 text-sm font-medium focus:border-purple-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-0 dark:bg-white/5 dark:text-white transition-all"
                   placeholder="name@example.com"
                 />
               </div>
@@ -140,7 +140,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full rounded-2xl border border-white/20 bg-white/50 py-3.5 pl-11 pr-4 text-sm font-medium focus:border-purple-500 focus:bg-white focus:outline-none focus:ring-0 dark:bg-white/5 dark:text-white transition-all"
+                  className="w-full rounded-2xl border border-white/20 bg-white/50 py-3.5 pl-11 pr-4 text-sm font-medium focus:border-purple-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-0 dark:bg-white/5 dark:text-white transition-all"
                   placeholder="••••••••"
                 />
               </div>
