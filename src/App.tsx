@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { onAuthStateChanged, User as FirebaseUser, updateProfile, isSignInWithEmailLink, signInWithEmailLink } from 'firebase/auth';
+import { onAuthStateChanged, User as FirebaseUser, updateProfile } from 'firebase/auth';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   collection, query, orderBy, onSnapshot, addDoc, updateDoc, 
@@ -393,27 +393,6 @@ export default function App() {
   }, []);
 
   const followingStr = following.join(',');
-  useEffect(() => {
-    // Handle Email Link Auth
-    if (isSignInWithEmailLink(auth, window.location.href)) {
-      let email = window.localStorage.getItem('emailForSignIn');
-      if (!email) {
-        email = window.prompt('Please provide your email for confirmation');
-      }
-      if (email) {
-        signInWithEmailLink(auth, email, window.location.href)
-          .then((result) => {
-            window.localStorage.removeItem('emailForSignIn');
-            // Handle successful sign-in
-            toast.success('Successfully signed in!');
-          })
-          .catch((error) => {
-            toast.error('Error signing in with email link: ' + error.message);
-          });
-      }
-    }
-  }, []);
-
   useEffect(() => {
     if (!user || following.length === 0) {
       setFollowingPosts([]);
