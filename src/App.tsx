@@ -126,6 +126,8 @@ export default function App() {
   const [bookmarks, setBookmarks] = useState<string[]>([]);
   const [selectedProfile, setSelectedProfile] = useState<UserProfile | null>(null);
   const [following, setFollowing] = useState<string[]>([]);
+  const [followingPosts, setFollowingPosts] = useState<Post[]>([]);
+  const [loadingFollowing, setLoadingFollowing] = useState(false);
   const [homeActiveTab, setHomeActiveTab] = useState<'for-you' | 'following'>('for-you');
   const [readingFontSize, setReadingFontSize] = useState<'sm' | 'base' | 'lg' | 'xl'>('lg');
   const [isReadingSettingsOpen, setIsReadingSettingsOpen] = useState(false);
@@ -358,6 +360,56 @@ export default function App() {
 
     return () => unsubscribe();
   }, []);
+
+  const followingStr = following.join(',');
+  useEffect(() => {
+    if (!user || following.length === 0) {
+      setFollowingPosts([]);
+      setLoadingFollowing(false);
+      return;
+    }
+
+    setLoadingFollowing(true);
+    
+    const chunks = [];
+    for (let i = 0; i < following.length; i += 10) {
+      chunks.push(following.slice(i, i + 10));
+    }
+
+    const allPosts = new Map<number, Post[]>();
+    const unsubscribes = chunks.map((chunk, index) => {
+      const q = query(
+        collection(db, 'posts'),
+        where('published', '==', true),
+        where('authorId', 'in', chunk),
+        orderBy('createdAt', 'desc'),
+        limit(20)
+      );
+      
+      return onSnapshot(q, (snapshot) => {
+        const postsData = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        })) as Post[];
+        
+        allPosts.set(index, postsData);
+        
+        const merged = Array.from(allPosts.values())
+          .flat()
+          .sort((a, b) => b.createdAt - a.createdAt)
+          .slice(0, 50);
+          
+        setFollowingPosts(merged);
+        setLoadingFollowing(false);
+      }, (error) => {
+        console.error('Error fetching following posts:', error);
+      });
+    });
+
+    return () => {
+      unsubscribes.forEach(unsub => unsub());
+    };
+  }, [user, followingStr]);
 
   const fetchMorePosts = async () => {
     if (!lastVisible || isFetchingMore || !hasMore) return;
@@ -600,12 +652,8 @@ export default function App() {
 
   const renderHome = () => {
     const queryStr = searchQuery.toLowerCase().trim();
-    const filteredPosts = posts.filter(post => {
-      // First filter by tab
-      if (homeActiveTab === 'following') {
-        if (!following.includes(post.authorId)) return false;
-      }
-
+    const sourcePosts = homeActiveTab === 'following' ? followingPosts : posts;
+    const filteredPosts = sourcePosts.filter(post => {
       // Then filter by search
       if (!queryStr) return true;
       return (
@@ -679,7 +727,7 @@ export default function App() {
             )}
 
             <div className="grid gap-8">
-              {loading ? (
+              {(homeActiveTab === 'following' ? loadingFollowing : loading) ? (
                 Array.from({ length: 3 }).map((_, i) => <PostCardSkeleton key={i} />)
               ) : filteredPosts.length > 0 ? (
                 <>
@@ -1064,6 +1112,13 @@ export default function App() {
                   <Heart className={cn("h-5 w-5 transition-colors", selectedPost.likesCount ? "fill-red-500 text-red-500" : "")} />
                   {selectedPost.likesCount || 0}
                 </button>
+                <div 
+                  className="flex items-center gap-2 rounded-2xl glass px-6 py-3 text-sm font-black text-gray-700 dark:text-gray-300 shadow-lg"
+                  title="Comments"
+                >
+                  <MessageCircle className="h-5 w-5 text-blue-500" />
+                  {selectedPost.commentsCount || 0}
+                </div>
                 
                 <div className="flex items-center gap-2 rounded-[1.5rem] glass p-1.5 shadow-lg">
                   <button 

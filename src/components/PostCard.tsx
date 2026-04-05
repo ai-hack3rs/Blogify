@@ -1,7 +1,7 @@
 import React from 'react';
 import { Post } from '../types';
 import { formatDate, cn } from '../lib/utils';
-import { User, Tag, Clock, Heart, Bookmark } from 'lucide-react';
+import { User, Tag, Clock, Heart, Bookmark, MessageCircle } from 'lucide-react';
 
 interface PostCardProps {
   post: Post;
@@ -103,6 +103,10 @@ export default function PostCard({ post, onClick, isBookmarked, onBookmark, onAu
             <span className="flex items-center gap-1.5">
               <Heart className="h-4 w-4 text-red-500" />
               {post.likesCount || 0}
+            </span>
+            <span className="flex items-center gap-1.5">
+              <MessageCircle className="h-4 w-4 text-blue-500" />
+              {post.commentsCount || 0}
             </span>
           </div>
         </div>
