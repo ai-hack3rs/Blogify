@@ -1,0 +1,88 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "displayName": { "type": "string", "description": "User's display name" },
+        "email": { "type": "string", "description": "User's email" },
+        "photoURL": { "type": "string", "description": "User's avatar URL" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Account creation timestamp" },
+        "role": { "type": "string", "enum": ["admin", "user"], "description": "User role" }
+      },
+      "required": ["uid", "email", "createdAt"]
+    },
+    "Post": {
+      "title": "Post",
+      "description": "Blog post content",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Post ID" },
+        "title": { "type": "string", "description": "Post title" },
+        "slug": { "type": "string", "description": "URL-friendly slug" },
+        "content": { "type": "string", "description": "HTML content from rich text editor" },
+        "published": { "type": "boolean", "description": "Publication status" },
+        "authorId": { "type": "string", "description": "UID of the author" },
+        "authorName": { "type": "string", "description": "Name of the author (denormalized)" },
+        "authorPhoto": { "type": "string", "description": "Avatar of the author (denormalized)" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" },
+        "updatedAt": { "type": "string", "format": "date-time", "description": "Last update timestamp" },
+        "tags": { "type": "array", "items": { "type": "string" }, "description": "List of tags" },
+        "coverImage": { "type": "string", "description": "URL of the cover image" },
+        "likesCount": { "type": "number", "description": "Number of likes" },
+        "commentsCount": { "type": "number", "description": "Number of comments" },
+        "readingTime": { "type": "number", "description": "Estimated reading time in minutes" }
+      },
+      "required": ["title", "slug", "content", "authorId", "createdAt", "published"]
+    },
+    "Comment": {
+      "title": "Comment",
+      "description": "User comment on a post",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "postId": { "type": "string" },
+        "authorId": { "type": "string" },
+        "authorName": { "type": "string" },
+        "authorPhoto": { "type": "string" },
+        "content": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["postId", "authorId", "content", "createdAt"]
+    },
+    "Tag": {
+      "title": "Tag",
+      "description": "Blog post categorization",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Tag name" },
+        "count": { "type": "number", "description": "Number of posts with this tag" }
+      },
+      "required": ["name"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile documents"
+    },
+    "/posts/{postId}": {
+      "schema": "Post",
+      "description": "Blog post documents"
+    },
+    "/tags/{tagName}": {
+      "schema": "Tag",
+      "description": "Tag documents"
+    },
+    "/posts/{postId}/comments/{commentId}": {
+      "schema": "Comment",
+      "description": "Comments on a specific post"
+    },
+    "/posts/{postId}/likes/{userId}": {
+      "schema": { "type": "object", "properties": { "uid": { "type": "string" } } },
+      "description": "Likes on a specific post"
+    }
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "name": "Full-Stack Blog",
+  "description": "A production-ready blogging platform with authentication, rich text editing, and a clean reading experience.",
+  "requestFramePermissions": []
+}

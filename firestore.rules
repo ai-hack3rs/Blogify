@@ -1,0 +1,166 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: {userId} (Firebase Auth UID)
+    // Fields:
+    //   - uid: string (required, immutable)
+    //   - displayName: string (optional)
+    //   - email: string (required, immutable)
+    //   - photoURL: string (optional)
+    //   - createdAt: timestamp (required, immutable)
+    //   - role: string (required, enum: ['admin', 'user'])
+    //
+    // Collection: posts
+    // Document ID: {postId}
+    // Fields:
+    //   - title: string (required, max 200)
+    //   - slug: string (required, unique)
+    //   - content: string (required, max 50000)
+    //   - published: bool (required)
+    //   - authorId: string (required, immutable)
+    //   - authorName: string (required)
+    //   - authorPhoto: string (optional)
+    //   - createdAt: timestamp (required, immutable)
+    //   - updatedAt: timestamp (required)
+    //   - tags: list (max 10)
+    //   - coverImage: string (optional)
+    //   - viewsCount: number (optional)
+    //   - likesCount: number (optional)
+    //   - commentsCount: number (optional)
+    //
+    // Collection: tags
+    // Document ID: {tagName}
+    // Fields:
+    //   - name: string (required)
+    //   - count: number (required)
+    //
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isDocOwner() {
+      return isAuthenticated() && request.auth.uid == resource.data.authorId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         (request.auth.token.email == "shashi.yadav.3rs@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email', 'createdAt', 'role']) &&
+             data.uid is string &&
+             data.email is string &&
+             data.role in ['admin', 'user'] &&
+             data.createdAt is timestamp;
+    }
+
+    function isValidPost(data) {
+      return data.keys().hasAll(['title', 'slug', 'content', 'authorId', 'createdAt', 'published']) &&
+             data.title is string && data.title.size() <= 200 &&
+             data.slug is string && data.slug.size() <= 250 &&
+             data.content is string && data.content.size() <= 50000 &&
+             data.authorId is string &&
+             data.published is bool &&
+             data.createdAt is timestamp &&
+             (!('tags' in data) || (data.tags is list && data.tags.size() <= 10)) &&
+             (!('viewsCount' in data) || data.viewsCount is number) &&
+             (!('likesCount' in data) || data.likesCount is number) &&
+             (!('commentsCount' in data) || data.commentsCount is number);
+    }
+
+    function isValidComment(data) {
+      return data.keys().hasAll(['postId', 'authorId', 'content', 'createdAt']) &&
+             data.content is string && data.content.size() <= 1000 &&
+             data.authorId is string &&
+             (!('parentId' in data) || data.parentId is string) &&
+             (!('isReported' in data) || data.isReported is bool) &&
+             (!('isRemoved' in data) || data.isRemoved is bool) &&
+             (!('reportCount' in data) || data.reportCount is int) &&
+             (!('repliesCount' in data) || data.repliesCount is int);
+    }
+
+    function isValidReport(data) {
+      return data.keys().hasAll(['commentId', 'postId', 'reporterId', 'reason', 'createdAt', 'status']) &&
+             data.commentId is string &&
+             data.postId is string &&
+             data.reporterId == request.auth.uid &&
+             data.reason is string && data.reason.size() <= 500 &&
+             data.createdAt is timestamp &&
+             data.status in ['pending', 'resolved', 'dismissed'];
+    }
+
+    // Rules
+    match /reports/{reportId} {
+      allow read: if isAdmin();
+      allow create: if isAuthenticated() && isValidReport(request.resource.data);
+      allow update: if isAdmin() && isValidReport(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /users/{userId} {
+      // Allow public profile viewing. 
+      // NOTE: In a production app, sensitive PII like email should be in a private subcollection.
+      allow read: if true;
+      allow create: if isOwner(userId) && isValidUser(request.resource.data) && request.resource.data.role == 'user';
+      allow update: if (isOwner(userId) || isAdmin()) && isValidUser(request.resource.data) && 
+                      (isAdmin() || request.resource.data.role == resource.data.role);
+      allow delete: if isAdmin();
+
+      match /bookmarks/{postId} {
+        allow read, write: if isOwner(userId);
+      }
+      match /following/{profileId} {
+        allow read, write: if isOwner(userId);
+      }
+    }
+
+    match /posts/{postId} {
+      allow read: if resource.data.published == true || isDocOwner() || isAdmin();
+      allow create: if isAuthenticated() && isValidPost(request.resource.data) && request.resource.data.authorId == request.auth.uid;
+      allow update: if (isDocOwner() || isAdmin()) && isValidPost(request.resource.data) && 
+                      request.resource.data.authorId == resource.data.authorId &&
+                      request.resource.data.createdAt == resource.data.createdAt;
+      
+      // Allow anyone to increment view count
+      allow update: if request.resource.data.diff(resource.data).affectedKeys().hasOnly(['viewsCount']);
+      
+      // Allow authenticated users to update likes and comments
+      allow update: if isAuthenticated() && 
+                      request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likesCount', 'commentsCount', 'viewsCount']);
+      
+      allow delete: if isDocOwner() || isAdmin();
+
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if isAuthenticated() && isValidComment(request.resource.data) && request.resource.data.authorId == request.auth.uid;
+        allow update: if (isAuthenticated() && (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isReported', 'reportCount', 'repliesCount']))) ||
+                        isAdmin();
+        allow delete: if isAuthenticated() && (request.auth.uid == resource.data.authorId || isAdmin());
+      }
+
+      match /likes/{userId} {
+        allow read: if true;
+        allow write: if isOwner(userId);
+      }
+    }
+
+    match /tags/{tagName} {
+      allow read: if true;
+      allow write: if isAuthenticated();
+    }
+  }
+}
