@@ -1,9 +1,10 @@
-import React from 'react';
-import { LogIn, LogOut, PenSquare, User, Home, Search, ShieldAlert, Bell } from 'lucide-react';
+import React, { useState } from 'react';
+import { LogIn, LogOut, PenSquare, User, Home, Search, ShieldAlert, Bell, Menu, X, Compass } from 'lucide-react';
 import { auth } from '../firebase';
 import { signOut } from 'firebase/auth';
 import { cn } from '../lib/utils';
 import { UserProfile, Notification } from '../types';
+import { motion, AnimatePresence } from 'motion/react';
 
 const formatDate = (date: any) => {
   if (date && typeof date.toDate === 'function') {
@@ -26,50 +27,59 @@ interface NavbarProps {
 }
 
 export default function Navbar({ user, userProfile, onNavigate, currentPage, onOpenLogin, searchQuery, onSearchChange, notifications, isNotificationsOpen, onToggleNotifications }: NavbarProps) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSearchVisible, setIsSearchVisible] = useState(false);
+
   const handleLogout = async () => {
     try {
       await signOut(auth);
       onNavigate('home');
+      setIsMobileMenuOpen(false);
     } catch (error) {
       console.error('Logout failed:', error);
     }
   };
 
+  const navItems = [
+    { name: 'Home', icon: Home, page: 'home' },
+    { name: 'Explore', icon: Compass, page: 'explore' },
+  ];
+
+  const handleMobileNavigate = (page: string) => {
+    onNavigate(page);
+    setIsMobileMenuOpen(false);
+  };
+
   return (
     <nav className="glass-nav">
       <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center gap-8 lg:gap-12">
+        <div className="flex items-center gap-4 lg:gap-12">
           <button 
-            onClick={() => onNavigate('home')}
-            className="flex items-center gap-3 text-2xl font-black tracking-tighter text-gray-900 dark:text-white"
+            onClick={() => handleMobileNavigate('home')}
+            className="flex items-center gap-3 text-2xl font-black tracking-tighter text-gray-900 dark:text-white shrink-0"
           >
             <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-purple-600 to-blue-600 text-white shadow-lg">B</div>
             <span className="hidden sm:inline">Blogify</span>
           </button>
           
           <div className="hidden items-center gap-6 md:flex">
-            <button 
-              onClick={() => onNavigate('home')}
-              className={cn(
-                "text-sm font-medium transition-colors hover:text-black dark:hover:text-white",
-                currentPage === 'home' ? "text-black dark:text-white" : "text-gray-500 dark:text-gray-400"
-              )}
-            >
-              Home
-            </button>
-            <button 
-              onClick={() => onNavigate('explore')}
-              className={cn(
-                "text-sm font-medium transition-colors hover:text-black dark:hover:text-white",
-                currentPage === 'explore' ? "text-black dark:text-white" : "text-gray-500 dark:text-gray-400"
-              )}
-            >
-              Explore
-            </button>
+            {navItems.map((item) => (
+              <button 
+                key={item.page}
+                onClick={() => onNavigate(item.page)}
+                className={cn(
+                  "text-sm font-medium transition-colors hover:text-black dark:hover:text-white",
+                  currentPage === item.page ? "text-black dark:text-white" : "text-gray-500 dark:text-gray-400"
+                )}
+              >
+                {item.name}
+              </button>
+            ))}
           </div>
         </div>
 
-        <div className="flex flex-1 items-center justify-center px-4 max-w-md">
+        {/* Desktop Search */}
+        <div className="hidden md:flex flex-1 items-center justify-center px-4 max-w-md">
           <div className="relative w-full group">
             <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
               <Search className="h-4 w-4 text-gray-400 group-focus-within:text-purple-500 transition-colors" />
@@ -78,18 +88,26 @@ export default function Navbar({ user, userProfile, onNavigate, currentPage, onO
               type="text"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
-              placeholder="Search stories, authors, tags..."
+              placeholder="Search stories..."
               className="w-full rounded-2xl border border-gray-200 bg-gray-50/50 py-2 pl-11 pr-4 text-sm font-medium focus:border-purple-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-0 dark:border-gray-800 dark:bg-gray-900/50 dark:text-white dark:focus:border-purple-500 transition-all"
             />
           </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
+          {/* Mobile Search Toggle */}
+          <button 
+            onClick={() => setIsSearchVisible(!isSearchVisible)}
+            className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-all md:hidden"
+          >
+            <Search className="h-5 w-5 text-gray-600 dark:text-gray-300" />
+          </button>
+
           {user ? (
             <>
               <button 
                 onClick={() => onNavigate('write')}
-                className="flex items-center gap-2 rounded-full border border-gray-200 px-4 py-1.5 text-sm font-medium transition-all hover:bg-gray-50 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-white"
+                className="hidden sm:flex items-center gap-2 rounded-full border border-gray-200 px-4 py-1.5 text-sm font-medium transition-all hover:bg-gray-50 dark:border-gray-800 dark:text-gray-400 dark:hover:bg-gray-900 dark:hover:text-white"
               >
                 <PenSquare className="h-4 w-4" />
                 <span>Write</span>
@@ -122,7 +140,7 @@ export default function Navbar({ user, userProfile, onNavigate, currentPage, onO
                   </div>
                 )}
               </div>
-              <div className="relative group">
+              <div className="relative group hidden md:block">
                 <button className="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100 overflow-hidden border border-gray-200 dark:bg-gray-800 dark:border-gray-700">
                   {user.photoURL ? (
                     <img src={user.photoURL} alt={user.displayName} className="h-full w-full object-cover" referrerPolicy="no-referrer" />
@@ -167,14 +185,137 @@ export default function Navbar({ user, userProfile, onNavigate, currentPage, onO
           ) : (
             <button 
               onClick={onOpenLogin}
-              className="flex items-center gap-2 rounded-full bg-black px-6 py-2 text-sm font-medium text-white transition-all hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
+              className="flex items-center gap-2 rounded-full bg-black px-4 sm:px-6 py-2 text-sm font-medium text-white transition-all hover:bg-black/90 dark:bg-white dark:text-black dark:hover:bg-white/90"
             >
               <LogIn className="h-4 w-4" />
-              <span>Sign In</span>
+              <span className="hidden sm:inline">Sign In</span>
+              <span className="sm:hidden">Login</span>
             </button>
           )}
+
+          {/* Mobile Menu Toggle */}
+          <button 
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="flex h-10 w-10 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-all md:hidden"
+          >
+            {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+          </button>
         </div>
       </div>
+
+      {/* Mobile Search Bar */}
+      <AnimatePresence>
+        {isSearchVisible && (
+          <motion.div 
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            className="border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-slate-950 md:hidden overflow-hidden"
+          >
+            <div className="p-4">
+              <div className="relative w-full group">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                  <Search className="h-4 w-4 text-gray-400 group-focus-within:text-purple-500 transition-colors" />
+                </div>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => onSearchChange(e.target.value)}
+                  placeholder="Search stories, authors, tags..."
+                  autoFocus
+                  className="w-full rounded-2xl border border-gray-200 bg-gray-50/50 py-3 pl-11 pr-4 text-sm font-medium focus:border-purple-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-0 dark:border-gray-800 dark:bg-gray-900/50 dark:text-white dark:focus:border-purple-500 transition-all"
+                />
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {isMobileMenuOpen && (
+          <motion.div 
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            className="fixed inset-0 top-20 z-40 bg-white dark:bg-slate-950 md:hidden"
+          >
+            <div className="flex flex-col p-6 gap-2">
+              {navItems.map((item) => (
+                <button 
+                  key={item.page}
+                  onClick={() => handleMobileNavigate(item.page)}
+                  className={cn(
+                    "flex items-center gap-4 rounded-2xl p-4 text-lg font-black transition-all",
+                    currentPage === item.page 
+                      ? "bg-purple-50 text-purple-600 dark:bg-purple-900/20 dark:text-purple-400" 
+                      : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-900"
+                  )}
+                >
+                  <item.icon className="h-6 w-6" />
+                  {item.name}
+                </button>
+              ))}
+              
+              <div className="my-4 h-[1px] bg-gray-100 dark:bg-gray-800" />
+
+              {user ? (
+                <>
+                  <button 
+                    onClick={() => handleMobileNavigate('write')}
+                    className="flex items-center gap-4 rounded-2xl p-4 text-lg font-black text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-900"
+                  >
+                    <PenSquare className="h-6 w-6" />
+                    Write a Story
+                  </button>
+                  <button 
+                    onClick={() => handleMobileNavigate('dashboard')}
+                    className="flex items-center gap-4 rounded-2xl p-4 text-lg font-black text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-900"
+                  >
+                    <Home className="h-6 w-6" />
+                    Dashboard
+                  </button>
+                  <button 
+                    onClick={() => handleMobileNavigate('profile')}
+                    className="flex items-center gap-4 rounded-2xl p-4 text-lg font-black text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-900"
+                  >
+                    <User className="h-6 w-6" />
+                    Profile Settings
+                  </button>
+                  {userProfile?.role === 'admin' && (
+                    <button 
+                      onClick={() => handleMobileNavigate('admin-dashboard')}
+                      className="flex items-center gap-4 rounded-2xl p-4 text-lg font-black text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20"
+                    >
+                      <ShieldAlert className="h-6 w-6" />
+                      Admin Dashboard
+                    </button>
+                  )}
+                  <button 
+                    onClick={handleLogout}
+                    className="mt-4 flex items-center gap-4 rounded-2xl p-4 text-lg font-black text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  >
+                    <LogOut className="h-6 w-6" />
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <button 
+                  onClick={() => {
+                    onOpenLogin();
+                    setIsMobileMenuOpen(false);
+                  }}
+                  className="flex items-center justify-center gap-3 rounded-2xl bg-black p-4 text-lg font-black text-white dark:bg-white dark:text-black"
+                >
+                  <LogIn className="h-6 w-6" />
+                  Sign In
+                </button>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 }

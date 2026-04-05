@@ -117,7 +117,6 @@ export default function App() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [darkMode, setDarkMode] = useState(false);
   const [lastVisible, setLastVisible] = useState<any>(null);
   const [hasMore, setHasMore] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
@@ -130,8 +129,6 @@ export default function App() {
   const [followingPosts, setFollowingPosts] = useState<Post[]>([]);
   const [loadingFollowing, setLoadingFollowing] = useState(false);
   const [homeActiveTab, setHomeActiveTab] = useState<'for-you' | 'following'>('for-you');
-  const [readingFontSize, setReadingFontSize] = useState<'sm' | 'base' | 'lg' | 'xl'>('lg');
-  const [isReadingSettingsOpen, setIsReadingSettingsOpen] = useState(false);
 
   const [exploreActiveCategory, setExploreActiveCategory] = useState('All');
   const [dashboardActiveTab, setDashboardActiveTab] = useState<'stories' | 'drafts' | 'bookmarks' | 'moderation'>('stories');
@@ -206,13 +203,6 @@ export default function App() {
     await uploadBytes(storageRef, file);
     return await getDownloadURL(storageRef);
   };
-  useEffect(() => {
-    if (darkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [darkMode]);
 
   // Form state for new/edit post
   const [formData, setFormData] = useState({
@@ -1012,88 +1002,8 @@ export default function App() {
     if (!selectedPost) return renderNotFound();
     const readingTime = selectedPost.readingTime || calculateReadingTime(selectedPost.content);
 
-    const fontSizeClasses = {
-      sm: 'prose-sm',
-      base: 'prose-base',
-      lg: 'prose-lg',
-      xl: 'prose-xl',
-    };
-
     return (
-      <div className={cn("mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8 relative min-h-screen", darkMode ? "dark bg-slate-950" : "bg-slate-50")}>
-        {/* Floating Reading Settings */}
-        <div className="fixed bottom-8 right-8 z-50">
-          <div className="relative">
-            <AnimatePresence>
-              {isReadingSettingsOpen && (
-                <motion.div
-                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 20, scale: 0.95 }}
-                  className="absolute bottom-full right-0 mb-4 w-64 rounded-[2rem] glass p-6 shadow-2xl border border-white/20"
-                >
-                  <div className="space-y-6">
-                    <div>
-                      <div className="mb-3 text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">Appearance</div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => setDarkMode(false)}
-                          className={cn(
-                            "flex-1 rounded-xl p-3 transition-all flex flex-col items-center gap-2",
-                            !darkMode ? "bg-white dark:bg-gray-800 shadow-lg scale-105" : "hover:bg-white/50 dark:hover:bg-gray-800/50"
-                          )}
-                        >
-                          <Sun className={cn("h-5 w-5", !darkMode ? "text-orange-500" : "text-gray-400")} />
-                          <span className="text-[10px] font-black uppercase tracking-tighter">Light</span>
-                        </button>
-                        <button
-                          onClick={() => setDarkMode(true)}
-                          className={cn(
-                            "flex-1 rounded-xl p-3 transition-all flex flex-col items-center gap-2",
-                            darkMode ? "bg-white dark:bg-gray-800 shadow-lg scale-105" : "hover:bg-white/50 dark:hover:bg-gray-800/50"
-                          )}
-                        >
-                          <Moon className={cn("h-5 w-5", darkMode ? "text-purple-500" : "text-gray-400")} />
-                          <span className="text-[10px] font-black uppercase tracking-tighter">Dark</span>
-                        </button>
-                      </div>
-                    </div>
-
-                    <div>
-                      <div className="mb-3 text-xs font-black uppercase tracking-widest text-gray-500 dark:text-gray-400">Font Size</div>
-                      <div className="grid grid-cols-4 gap-2">
-                        {(['sm', 'base', 'lg', 'xl'] as const).map((size) => (
-                          <button
-                            key={size}
-                            onClick={() => setReadingFontSize(size)}
-                            className={cn(
-                              "rounded-xl p-2 text-sm font-black transition-all",
-                              readingFontSize === size 
-                                ? "bg-purple-600 text-white shadow-lg scale-110" 
-                                : "glass text-gray-500 hover:bg-purple-500/10"
-                            )}
-                          >
-                            {size.toUpperCase()}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            <button
-              onClick={() => setIsReadingSettingsOpen(!isReadingSettingsOpen)}
-              className={cn(
-                "h-14 w-14 rounded-full glass shadow-2xl flex items-center justify-center transition-all hover:scale-110 active:scale-95 border border-white/20",
-                isReadingSettingsOpen ? "bg-purple-600 text-white rotate-90" : "text-gray-700 dark:text-gray-200"
-              )}
-            >
-              <Type className="h-6 w-6" />
-            </button>
-          </div>
-        </div>
-
+      <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 lg:px-8 relative min-h-screen dark bg-slate-950">
         <button 
           onClick={() => setCurrentPage('home')}
           className="group mb-12 flex items-center gap-3 text-sm font-black uppercase tracking-widest text-gray-500 hover:text-purple-600 dark:text-gray-400 dark:hover:text-purple-400 transition-all"
@@ -1264,8 +1174,7 @@ export default function App() {
 
           <div 
             className={cn(
-              "prose dark:prose-invert max-w-none prose-headings:font-black prose-headings:tracking-tight prose-p:font-serif prose-p:leading-relaxed prose-p:text-gray-600 dark:prose-p:text-gray-400",
-              fontSizeClasses[readingFontSize]
+              "prose dark:prose-invert max-w-none prose-headings:font-black prose-headings:tracking-tight prose-p:font-serif prose-p:leading-relaxed text-gray-300"
             )}
             dangerouslySetInnerHTML={{ __html: selectedPost.content }} 
           />

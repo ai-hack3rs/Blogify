@@ -37,22 +37,22 @@ export default function NewsletterForm() {
     <div className="rounded-3xl border border-gray-200 bg-white p-8 shadow-xl dark:border-gray-800 dark:bg-gray-900">
       <h3 className="text-xl font-black text-gray-900 dark:text-white">Subscribe to our newsletter</h3>
       <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Get the latest posts delivered to your inbox.</p>
-      <form onSubmit={handleSubmit} className="mt-6 flex gap-2">
+      <form onSubmit={handleSubmit} className="mt-6 flex flex-col sm:flex-row gap-3">
         <div className="relative flex-1">
-          <Mail className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
+          <Mail className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-400" />
           <input
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Enter your email"
-            className="w-full rounded-full border border-gray-200 bg-gray-50 py-3 pl-10 pr-4 text-sm outline-none focus:border-purple-500 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
+            className="w-full rounded-2xl border border-gray-200 bg-gray-50 py-3.5 pl-12 pr-4 text-sm font-medium outline-none focus:border-purple-500 focus:bg-white dark:border-gray-700 dark:bg-gray-800 dark:text-white dark:focus:bg-slate-900 transition-all"
             required
           />
         </div>
         <button
           type="submit"
           disabled={isSubmitting}
-          className="rounded-full bg-black px-6 py-3 text-sm font-black text-white transition-all hover:scale-105 dark:bg-white dark:text-black disabled:opacity-50"
+          className="rounded-2xl bg-black px-8 py-3.5 text-sm font-black text-white transition-all hover:scale-[1.02] active:scale-95 dark:bg-white dark:text-black disabled:opacity-50 shadow-lg"
         >
           {isSubmitting ? <Loader2 className="h-5 w-5 animate-spin" /> : 'Subscribe'}
         </button>
