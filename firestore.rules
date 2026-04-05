@@ -69,12 +69,13 @@ service cloud.firestore {
     }
 
     function isValidPost(data) {
-      return data.keys().hasAll(['title', 'slug', 'content', 'authorId', 'createdAt', 'published']) &&
+      return data.keys().hasAll(['title', 'slug', 'content', 'authorId', 'createdAt', 'published', 'category']) &&
              data.title is string && data.title.size() <= 200 &&
              data.slug is string && data.slug.size() <= 250 &&
              data.content is string && data.content.size() <= 50000 &&
              data.authorId is string &&
              data.published is bool &&
+             data.category is string &&
              data.createdAt is timestamp &&
              (!('tags' in data) || (data.tags is list && data.tags.size() <= 10)) &&
              (!('viewsCount' in data) || data.viewsCount is number) &&

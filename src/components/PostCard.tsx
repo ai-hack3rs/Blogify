@@ -53,21 +53,28 @@ export default function PostCard({ post, onClick, isBookmarked, onBookmark, onAu
         <div 
           onClick={onAuthorClick}
           className={cn(
-            "flex items-center gap-3 w-fit",
+            "flex items-center justify-between gap-3 w-full",
             onAuthorClick && "hover:opacity-80 transition-opacity"
           )}
         >
-          <div className="h-8 w-8 overflow-hidden rounded-full glass">
-            {post.authorPhoto ? (
-              <img src={post.authorPhoto} alt={post.authorName} className="h-full w-full object-cover" referrerPolicy="no-referrer" />
-            ) : (
-              <User className="h-full w-full p-1.5 text-gray-400" />
-            )}
+          <div className="flex items-center gap-3">
+            <div className="h-8 w-8 overflow-hidden rounded-full glass">
+              {post.authorPhoto ? (
+                <img src={post.authorPhoto} alt={post.authorName} className="h-full w-full object-cover" referrerPolicy="no-referrer" />
+              ) : (
+                <User className="h-full w-full p-1.5 text-gray-400" />
+              )}
+            </div>
+            <div className="flex flex-col">
+              <span className="text-sm font-bold text-gray-900 dark:text-white">{post.authorName}</span>
+              <span className="text-xs font-mono text-gray-500 dark:text-gray-400">{formatDate(post.createdAt)}</span>
+            </div>
           </div>
-          <div className="flex flex-col">
-            <span className="text-sm font-bold text-gray-900 dark:text-white">{post.authorName}</span>
-            <span className="text-xs font-mono text-gray-500 dark:text-gray-400">{formatDate(post.createdAt)}</span>
-          </div>
+          {post.category && (
+            <span className="rounded-full bg-purple-500/10 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-purple-600 dark:text-purple-400 border border-purple-500/20">
+              {post.category}
+            </span>
+          )}
         </div>
 
         <h2 className={cn(

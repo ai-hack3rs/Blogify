@@ -26,7 +26,7 @@ import {
   Clock, ChevronRight, Bookmark, PenSquare, Search, Moon, Sun,
   Heart, Share2, MessageCircle, MoreHorizontal, AlertTriangle,
   Users, ShieldAlert, FileText, Home, Twitter, Facebook, Linkedin,
-  Type, Bell
+  Type, Bell, Compass
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { Toaster, toast } from 'sonner';
@@ -204,12 +204,15 @@ export default function App() {
     return await getDownloadURL(storageRef);
   };
 
+  const CATEGORIES = ['Technology', 'Design', 'Lifestyle', 'Business', 'Health', 'Travel', 'Other'];
+
   // Form state for new/edit post
   const [formData, setFormData] = useState({
     title: '',
     content: '',
     tags: '',
     coverImage: '',
+    category: 'Technology',
     published: true
   });
 
@@ -505,6 +508,7 @@ export default function App() {
         updatedAt: serverTimestamp(),
         tags: formData.tags.split(',').map(t => t.trim()).filter(t => t !== ''),
         coverImage: formData.coverImage || `https://picsum.photos/seed/${formData.title}/1200/600`,
+        category: formData.category,
         likesCount: 0,
         commentsCount: 0,
         viewsCount: 0,
@@ -512,7 +516,7 @@ export default function App() {
       };
 
       await addDoc(collection(db, 'posts'), postData);
-      setFormData({ title: '', content: '', tags: '', coverImage: '', published: true });
+      setFormData({ title: '', content: '', tags: '', coverImage: '', category: 'Technology', published: true });
       setCurrentPage('home');
     } catch (error) {
       console.error('Error creating post:', error);
@@ -535,6 +539,7 @@ export default function App() {
         published: formData.published,
         tags: formData.tags.split(',').map(t => t.trim()).filter(t => t !== ''),
         coverImage: formData.coverImage,
+        category: formData.category,
         updatedAt: serverTimestamp(),
         readingTime: calculateReadingTime(formData.content)
       });
@@ -1154,6 +1159,12 @@ export default function App() {
               </div>
             </div>
 
+            {selectedPost.category && (
+              <span className="inline-block rounded-full bg-purple-500/10 px-4 py-1.5 text-xs font-black uppercase tracking-widest text-purple-600 dark:text-purple-400 border border-purple-500/20 w-fit">
+                {selectedPost.category}
+              </span>
+            )}
+
             <h1 className="text-4xl font-black tracking-tight text-gray-900 dark:text-white sm:text-6xl leading-[1.1]">
               {selectedPost.title}
             </h1>
@@ -1284,6 +1295,18 @@ export default function App() {
           </div>
           
           <div className="flex flex-wrap gap-4">
+            <div className="flex flex-1 items-center gap-3 rounded-2xl glass px-5 py-3 border border-white/20">
+              <Compass className="h-5 w-5 text-purple-500" />
+              <select
+                value={formData.category}
+                onChange={e => setFormData({ ...formData, category: e.target.value })}
+                className="flex-1 bg-transparent text-sm font-bold focus:outline-none dark:text-white appearance-none cursor-pointer"
+              >
+                {CATEGORIES.map(cat => (
+                  <option key={cat} value={cat} className="bg-white dark:bg-slate-900">{cat}</option>
+                ))}
+              </select>
+            </div>
             <div className="flex flex-1 items-center gap-3 rounded-2xl glass px-5 py-3 border border-white/20">
               <TagIcon className="h-5 w-5 text-purple-500" />
               <input
@@ -1422,7 +1445,7 @@ export default function App() {
           </div>
           <button 
             onClick={() => {
-              setFormData({ title: '', content: '', tags: '', coverImage: '', published: true });
+              setFormData({ title: '', content: '', tags: '', coverImage: '', category: 'Technology', published: true });
               setCurrentPage('write');
             }}
             className="flex items-center gap-3 rounded-full bg-purple-600 px-8 py-4 text-sm font-black text-white transition-all hover:bg-purple-500 shadow-xl shadow-purple-500/20 hover:scale-105 active:scale-95"
@@ -1520,6 +1543,7 @@ export default function App() {
                           content: post.content,
                           tags: post.tags.join(', '),
                           coverImage: post.coverImage || '',
+                          category: post.category || 'Technology',
                           published: post.published
                         });
                         setCurrentPage('edit');
@@ -1590,6 +1614,7 @@ export default function App() {
                           content: post.content,
                           tags: post.tags.join(', '),
                           coverImage: post.coverImage || '',
+                          category: post.category || 'Technology',
                           published: post.published
                         });
                         setCurrentPage('edit');
@@ -2011,11 +2036,15 @@ export default function App() {
   };
 
   const renderExplore = () => {
-    const categories = ['All', 'Technology', 'Design', 'Lifestyle', 'Business', 'Health', 'Travel'];
+    const categories = ['All', ...CATEGORIES];
     
+    const filteredPosts = exploreActiveCategory === 'All' 
+      ? posts 
+      : posts.filter(p => p.category === exploreActiveCategory);
+
     // Bento grid logic: first post is large, others are regular
-    const featuredPost = posts[0];
-    const otherPosts = posts.slice(1);
+    const featuredPost = filteredPosts[0];
+    const otherPosts = filteredPosts.slice(1);
 
     return (
       <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">

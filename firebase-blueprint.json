@@ -31,6 +31,7 @@
         "updatedAt": { "type": "string", "format": "date-time", "description": "Last update timestamp" },
         "tags": { "type": "array", "items": { "type": "string" }, "description": "List of tags" },
         "coverImage": { "type": "string", "description": "URL of the cover image" },
+        "category": { "type": "string", "description": "Post category" },
         "likesCount": { "type": "number", "description": "Number of likes" },
         "commentsCount": { "type": "number", "description": "Number of comments" },
         "readingTime": { "type": "number", "description": "Estimated reading time in minutes" }

@@ -30,6 +30,7 @@ export interface Post {
   updatedAt: Timestamp;
   tags: string[];
   coverImage?: string;
+  category: string;
   likesCount: number;
   commentsCount: number;
   viewsCount: number;
